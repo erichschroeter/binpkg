@@ -1,18 +1,23 @@
 add_library(
-    binpkg_lib
+    binpkg
     binpkg.cpp
 )
 target_include_directories(
-    binpkg_lib
+    binpkg
     PUBLIC
         .
 )
 
 add_executable(
-    binpkg
+    binpkg-exe
     main.cpp
 )
+set_target_properties(
+    binpkg-exe
+    PROPERTIES
+        OUTPUT_NAME "binpkg"
+)
 target_link_libraries(
+    binpkg-exe
     binpkg
-    binpkg_lib
 )
