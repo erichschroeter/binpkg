@@ -6,5 +6,3 @@ add_subdirectory(src)
 add_subdirectory(test)
 
 include(CTest)
-include(ParseAndAddCatchTests)
-ParseAndAddCatchTests(tests)

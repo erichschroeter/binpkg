@@ -14,3 +14,7 @@ target_link_libraries(
       Catch2::Catch2WithMain
       binpkg
 )
+
+enable_testing()
+include(ParseAndAddCatchTests)
+ParseAndAddCatchTests(tests)
