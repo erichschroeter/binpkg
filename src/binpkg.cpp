@@ -54,6 +54,16 @@ Header Pkg::ParseHeader()
     return hdr;
 }
 
+void Pkg::WriteHeader( const Header & hdr )
+{
+    for ( const auto & item : hdr.Items() )
+    {
+        m_stream.write( (char*)&item.m_offset, sizeof( item.m_offset ) );
+        m_stream.write( (char*)&item.m_length, sizeof( item.m_length ) );
+        m_stream.write( item.m_name, std::strlen( item.m_name ) );
+    }
+}
+
 #pragma endregion Pkg
 
 #pragma region Header
@@ -61,6 +71,11 @@ Header Pkg::ParseHeader()
 size_t Header::ItemCount() const
 {
     return m_items.size();
+}
+
+const std::vector< Item > & Header::Items() const &
+{
+    return m_items;
 }
 
 void Header::Add( Item item )

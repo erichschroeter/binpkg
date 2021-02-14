@@ -1,4 +1,5 @@
 
+#include <cstring>
 #include <iostream>
 #include <catch2/catch_test_macros.hpp>
 
@@ -131,4 +132,43 @@ TEST_CASE( "Pkg ParseHeader returns two Item when two exists" )
     memstream<char> stream( data, sizeof(data) );
     Pkg pkg( stream );
     REQUIRE( pkg.ParseHeader().ItemCount() == 2 );
+}
+
+TEST_CASE( "Pkg WriteHeader writes item offset" )
+{
+    char data[64] = {0};
+    memstream<char> stream( data, sizeof(data) );
+    Pkg pkg( stream );
+    Header hdr;
+    hdr.Add( Item( 10, 0, "" ) );
+    pkg.WriteHeader( hdr );
+    Item actual;
+    actual.m_offset = data[0];
+    REQUIRE( actual.m_offset == 10 );
+}
+
+TEST_CASE( "Pkg WriteHeader writes item length" )
+{
+    char data[64] = {0};
+    memstream<char> stream( data, sizeof(data) );
+    Pkg pkg( stream );
+    Header hdr;
+    hdr.Add( Item( 0, 5, "" ) );
+    pkg.WriteHeader( hdr );
+    Item actual;
+    actual.m_length = data[4];
+    REQUIRE( actual.m_length == 5 );
+}
+
+TEST_CASE( "Pkg WriteHeader writes item name" )
+{
+    char data[64] = {0};
+    memstream<char> stream( data, sizeof(data) );
+    Pkg pkg( stream );
+    Header hdr;
+    hdr.Add( Item( 0, 0, "hello world" ) );
+    pkg.WriteHeader( hdr );
+    Item actual;
+    std::strncpy( actual.m_name, &data[8], sizeof( actual.m_name ) );
+    REQUIRE( std::string( actual.m_name ) == "hello world" );
 }

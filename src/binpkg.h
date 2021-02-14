@@ -36,6 +36,7 @@ namespace BinPkg
     public:
         size_t ItemCount() const;
         void Add( Item item );
+        const std::vector< Item > & Items() const &;
 
     protected:
         std::vector< Item > m_items;
@@ -48,6 +49,7 @@ namespace BinPkg
 
         Header ParseHeader();
         int ReadCString( char * buf, size_t buf_length );
+        void WriteHeader( const Header & hdr );
 
     protected:
         std::iostream & m_stream;
