@@ -44,7 +44,35 @@ TEST_CASE( "Header ItemCount returns 1 when 1 Item exists" )
     REQUIRE( hdr.ItemCount() == 1 );
 }
 
-TEST_CASE( "Pkg ParseHeader returns zero Item when empty Item does not exist" )
+TEST_CASE( "Pkg ReadCString returns zero when empty string" )
+{
+    char data[] = {0};
+    char c_string[2] = {0};
+    memstream<char> stream( data, sizeof(data) );
+    Pkg pkg( stream );
+    REQUIRE( pkg.ReadCString( c_string, sizeof(c_string) ) == 0 );
+}
+
+TEST_CASE( "Pkg ReadCString returns one when single char" )
+{
+    char data[] = {'1', 0};
+    char c_string[2] = {0};
+    memstream<char> stream( data, sizeof(data) );
+    Pkg pkg( stream );
+    REQUIRE( pkg.ReadCString( c_string, sizeof(c_string) ) == 1 );
+}
+
+TEST_CASE( "Pkg ReadCString copies single char string to array" )
+{
+    char data[] = {'1', 0};
+    char c_string[2] = {0};
+    memstream<char> stream( data, sizeof(data) );
+    Pkg pkg( stream );
+    pkg.ReadCString( c_string, sizeof(c_string) );
+    REQUIRE( std::string( c_string ) == "1" );
+}
+
+TEST_CASE( "Pkg ParseHeader returns zero Item when zero exists" )
 {
     char data[16] = {0};
     memstream<char> stream( data, sizeof(data) );
@@ -54,8 +82,16 @@ TEST_CASE( "Pkg ParseHeader returns zero Item when empty Item does not exist" )
 
 TEST_CASE( "Pkg ParseHeader returns one Item when one exists" )
 {
-    char data[16] = {0, 0, '1', '\0', 0, 0, '\0'};
+    char data[] = {0, 0, 0, 0, 0, 0, 0, 0, '1', '\0', 0, 0, 0, 0, 0, 0, 0, 0, '\0'};
     memstream<char> stream( data, sizeof(data) );
     Pkg pkg( stream );
     REQUIRE( pkg.ParseHeader().ItemCount() == 1 );
+}
+
+TEST_CASE( "Pkg ParseHeader returns two Item when two exists" )
+{
+    char data[] = {0, 0, 0, 0, 0, 0, 0, 0, '1', '\0', 0, 0, 0, 0, 0, 0, 0, 0, '2', '\0', 0, 0, 0, 0, 0, 0, 0, 0, '\0'};
+    memstream<char> stream( data, sizeof(data) );
+    Pkg pkg( stream );
+    REQUIRE( pkg.ParseHeader().ItemCount() == 2 );
 }

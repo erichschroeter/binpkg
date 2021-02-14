@@ -13,20 +13,21 @@ namespace BinPkg
         char * Name;
     };
 
-    class Item
+    struct Item
     {
     public:
-        Item( uint32_t offset, uint32_t length, const char * name );
+        static constexpr size_t MAX_NAME_LENGTH = 1024;
+
+        Item( uint32_t offset = 0, uint32_t length = 0, const char * name = "" );
 
         uint32_t Offset() const;
         uint32_t Length() const;
         std::string Name();
         bool IsEmpty();
 
-    protected:
         uint32_t m_offset;
         uint32_t m_length;
-        std::string m_name;
+        char m_name[MAX_NAME_LENGTH];
     };
 
     class Header

@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include "binpkg.h"
 
 using namespace BinPkg;
@@ -29,18 +31,15 @@ int Pkg::ReadCString( char * buf, size_t buf_length )
 
 Header Pkg::ParseHeader()
 {
-    char buf[sizeof(uint32_t) * 2];
     Header hdr;
     bool empty_item_found = false;
-    char c;
 
     do
     {
-        m_stream.read( buf, sizeof(buf) );
-        ItemInternal * casted = reinterpret_cast< ItemInternal * >( buf );
-        char name_buf[256] = {0};
-        int name_length = ReadCString( name_buf, sizeof(name_buf) );
-        Item item( casted->Offset, casted->Length, name_buf );
+        Item item;
+        m_stream.read( (char*)&item.m_offset, sizeof(item.m_offset) );
+        m_stream.read( (char*)&item.m_length, sizeof(item.m_length) );
+        ReadCString( item.m_name, sizeof(item.m_name) );
         if ( item.IsEmpty() )
         {
             empty_item_found = true;
@@ -77,8 +76,9 @@ Item::Item( uint32_t offset, uint32_t length, const char * name )
     :
     m_offset( offset ),
     m_length( length ),
-    m_name( name )
+    m_name{ 0 }
 {
+    std::strncpy( m_name, name, sizeof( m_name ) );
 }
 
 uint32_t Item::Offset() const
@@ -98,7 +98,7 @@ std::string Item::Name()
 
 bool Item::IsEmpty()
 {
-    return ( m_offset == 0 && m_length == 0 && m_name == "" );
+    return ( m_offset == 0 && m_length == 0 && m_name[0] == '\0' );
 }
 
 #pragma endregion item
