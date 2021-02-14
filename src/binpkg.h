@@ -27,7 +27,8 @@ namespace BinPkg
 
         uint32_t m_offset;
         uint32_t m_length;
-        char m_name[MAX_NAME_LENGTH];
+        // Array for storing C string with null-terminate accounted for.
+        char m_name[MAX_NAME_LENGTH + 1];
     };
 
     class Header

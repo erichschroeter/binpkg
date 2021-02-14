@@ -31,6 +31,21 @@ struct memstream :
     }
 };
 
+void CreateAsciiPatternCString( char * buf, size_t len )
+{
+    constexpr char MIN_ASCII = 0x20; // ' '
+    constexpr char MAX_ASCII = 0x7E; // '~'
+
+    for ( int i = 0, ascii = MIN_ASCII; i < len; ++i, ++ascii )
+    {
+        if ( ascii >= MAX_ASCII )
+        {
+            ascii = MIN_ASCII;
+        }
+        buf[i] = ascii;
+    }
+}
+
 TEST_CASE( "Item IsEmpty returns true when all values are zero" )
 {
     Item item( 0, 0, "" );
@@ -62,7 +77,7 @@ TEST_CASE( "Pkg ReadCString returns one when single char" )
     REQUIRE( pkg.ReadCString( c_string, sizeof(c_string) ) == 1 );
 }
 
-TEST_CASE( "Pkg ReadCString copies single char string to array" )
+TEST_CASE( "Pkg ReadCString when string length is under max length" )
 {
     char data[] = {'1', 0};
     char c_string[2] = {0};
@@ -70,6 +85,28 @@ TEST_CASE( "Pkg ReadCString copies single char string to array" )
     Pkg pkg( stream );
     pkg.ReadCString( c_string, sizeof(c_string) );
     REQUIRE( std::string( c_string ) == "1" );
+}
+
+TEST_CASE( "Pkg ReadCString when string length is max length" )
+{
+    char data[Item::MAX_NAME_LENGTH + 1] = {0}; // +1 for null-termination
+    char c_string[Item::MAX_NAME_LENGTH] = {0};
+    CreateAsciiPatternCString( data, sizeof( data ) - 1 ); // -1 to keep space for null-termination
+    memstream<char> stream( data, sizeof(data) );
+    Pkg pkg( stream );
+    pkg.ReadCString( c_string, sizeof(c_string) );
+    REQUIRE( std::string( c_string, sizeof( c_string ) ) == std::string( data, sizeof( data ) - 1 ) );
+}
+
+TEST_CASE( "Pkg ReadCString when string length is over max length" )
+{
+    char data[Item::MAX_NAME_LENGTH + 1 + 1] = {0}; // +1 for null-termination
+    char c_string[Item::MAX_NAME_LENGTH] = {0};
+    CreateAsciiPatternCString( data, sizeof( data ) - 1 ); // -1 to keep space for null-termination
+    memstream<char> stream( data, sizeof(data) );
+    Pkg pkg( stream );
+    pkg.ReadCString( c_string, sizeof(c_string) );
+    REQUIRE( std::string( c_string, sizeof( c_string ) ) == std::string( data, sizeof( data ) - 1 - 1 ) );
 }
 
 TEST_CASE( "Pkg ParseHeader returns zero Item when zero exists" )
