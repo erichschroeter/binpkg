@@ -79,6 +79,19 @@ size_t Header::ItemCount() const
     return m_items.size();
 }
 
+size_t Header::CalcLength() const
+{
+    size_t length = sizeof(Item::ItemInternal::Offset) + sizeof(Item::ItemInternal::Length) + sizeof("");
+
+    for ( const auto & item : Items() )
+    {
+        length += sizeof(Item::ItemInternal::Offset);
+        length += sizeof(Item::ItemInternal::Length);
+        length += item.Name().size() + 1; // +1 for null-terminator
+    }
+    return length;
+}
+
 const std::vector< Item > & Header::Items() const &
 {
     return m_items;
@@ -112,9 +125,9 @@ uint32_t Item::Length() const
     return m_length;
 }
 
-std::string Item::Name()
+const std::string Item::Name() const
 {
-    return m_name;
+    return std::string( m_name );
 }
 
 bool Item::IsEmpty()

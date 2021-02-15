@@ -107,6 +107,23 @@ TEST_CASE( "Header ItemCount returns 1 when 1 Item exists" )
     REQUIRE( hdr.ItemCount() == 1 );
 }
 
+TEST_CASE( "Header CalcLength with empty item" )
+{
+    Header hdr;
+    size_t expected_size = sizeof(Item::ItemInternal::Offset) + sizeof(Item::ItemInternal::Length) + sizeof("");
+    REQUIRE( hdr.CalcLength() == expected_size );
+}
+
+TEST_CASE( "Header CalcLength with one item includes null terminator" )
+{
+    Header hdr;
+    hdr.Add( Item( 0, 0, "zero" ) );
+    size_t expected_size = ( sizeof(Item::ItemInternal::Offset) * 2)
+        + ( sizeof(Item::ItemInternal::Length) * 2 )
+        + sizeof("") + 5;
+    REQUIRE( hdr.CalcLength() == expected_size );
+}
+
 TEST_CASE( "Pkg ReadCString returns zero when empty string" )
 {
     char data[] = {0};
@@ -220,7 +237,7 @@ TEST_CASE( "Pkg WriteHeader writes item name" )
     REQUIRE( std::string( actual.m_name ) == "hello world" );
 }
 
-TEST_CASE( "Pkg Write writes item data at offset" )
+TEST_CASE( "Pkg Write write item data at offset" )
 {
     char data[64] = {0};
     memstream<char> stream( data, sizeof(data) );

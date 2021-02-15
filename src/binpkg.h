@@ -6,15 +6,15 @@
 
 namespace BinPkg
 {
-    struct ItemInternal
-    {
-        uint32_t Offset;
-        uint32_t Length;
-        char * Name;
-    };
-
     struct Item
     {
+        struct ItemInternal
+        {
+            uint32_t Offset;
+            uint32_t Length;
+            char * Name;
+        };
+
     public:
         static constexpr size_t MAX_NAME_LENGTH = 1024;
 
@@ -22,9 +22,10 @@ namespace BinPkg
 
         uint32_t Offset() const;
         uint32_t Length() const;
-        std::string Name();
+        const std::string Name() const;
         bool IsEmpty();
 
+        ItemInternal m_item;
         uint32_t m_offset;
         uint32_t m_length;
         // Array for storing C string with null-terminate accounted for.
@@ -35,6 +36,7 @@ namespace BinPkg
     {
     public:
         size_t ItemCount() const;
+        size_t CalcLength() const;
         void Add( Item item );
         const std::vector< Item > & Items() const &;
 
