@@ -36,7 +36,7 @@ namespace BinPkg
     {
     public:
         size_t ItemCount() const;
-        size_t CalcLength() const;
+        size_t CalcSize() const;
         void Add( Item item );
         const std::vector< Item > & Items() const &;
 

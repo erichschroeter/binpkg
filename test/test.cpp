@@ -107,21 +107,21 @@ TEST_CASE( "Header ItemCount returns 1 when 1 Item exists" )
     REQUIRE( hdr.ItemCount() == 1 );
 }
 
-TEST_CASE( "Header CalcLength with empty item" )
+TEST_CASE( "Header CalcSize with empty item" )
 {
     Header hdr;
     size_t expected_size = sizeof(Item::ItemInternal::Offset) + sizeof(Item::ItemInternal::Length) + sizeof("");
-    REQUIRE( hdr.CalcLength() == expected_size );
+    REQUIRE( hdr.CalcSize() == expected_size );
 }
 
-TEST_CASE( "Header CalcLength with one item includes null terminator" )
+TEST_CASE( "Header CalcSize with one item includes null terminator" )
 {
     Header hdr;
     hdr.Add( Item( 0, 0, "zero" ) );
     size_t expected_size = ( sizeof(Item::ItemInternal::Offset) * 2)
         + ( sizeof(Item::ItemInternal::Length) * 2 )
         + sizeof("") + 5;
-    REQUIRE( hdr.CalcLength() == expected_size );
+    REQUIRE( hdr.CalcSize() == expected_size );
 }
 
 TEST_CASE( "Pkg ReadCString returns zero when empty string" )

@@ -79,7 +79,7 @@ size_t Header::ItemCount() const
     return m_items.size();
 }
 
-size_t Header::CalcLength() const
+size_t Header::CalcSize() const
 {
     size_t length = sizeof(Item::ItemInternal::Offset) + sizeof(Item::ItemInternal::Length) + sizeof("");
 
