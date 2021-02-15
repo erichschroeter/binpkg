@@ -64,6 +64,12 @@ void Pkg::WriteHeader( const Header & hdr )
     }
 }
 
+void Pkg::Write( const Item & item, const char * data, size_t data_length )
+{
+    m_stream.seekp( item.m_offset, m_stream.beg );
+    m_stream.write( data, data_length );
+}
+
 #pragma endregion Pkg
 
 #pragma region Header

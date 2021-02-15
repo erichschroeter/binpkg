@@ -16,6 +16,24 @@ struct memstreambuf :
         this->setp( buf, buf + bufLength );
         this->setg( buf, buf, buf + bufLength );
     }
+
+    std::streampos seekoff(
+        std::ios::off_type off,
+        std::ios_base::seekdir dir,
+        std::ios_base::openmode which = std::ios_base::in ) override
+    {
+        if ( which == std::ios_base::in )
+        {
+            this->gbump( off );
+        }
+        else
+        {
+            this->pbump( off );
+        }
+        return which == std::ios_base::out ?
+            this->pptr() - this->eback() :
+            this->gptr() - this->eback();
+    }
 };
 
 template < typename char_type >
@@ -31,6 +49,35 @@ struct memstream :
     {
     }
 };
+
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_templated.hpp>
+
+template<typename Range>
+struct EqualsRangeMatcher : Catch::Matchers::MatcherGenericBase {
+    EqualsRangeMatcher(Range const& range):
+        range{ range }
+    {}
+
+    template<typename OtherRange>
+    bool match(OtherRange const& other) const {
+        using std::begin; using std::end;
+
+        return std::equal(begin(range), end(range), begin(other), end(other));
+    }
+
+    std::string describe() const override {
+        return "Equals: " + Catch::rangeToString(range);
+    }
+
+private:
+    Range const& range;
+};
+
+template<typename Range>
+auto EqualsRange(const Range& range) -> EqualsRangeMatcher<Range> {
+    return EqualsRangeMatcher<Range>{range};
+}
 
 void CreateAsciiPatternCString( char * buf, size_t len )
 {
@@ -171,4 +218,22 @@ TEST_CASE( "Pkg WriteHeader writes item name" )
     Item actual;
     std::strncpy( actual.m_name, &data[8], sizeof( actual.m_name ) );
     REQUIRE( std::string( actual.m_name ) == "hello world" );
+}
+
+TEST_CASE( "Pkg Write writes item data at offset" )
+{
+    char data[64] = {0};
+    memstream<char> stream( data, sizeof(data) );
+    Pkg pkg( stream );
+    std::string item_name = "";
+    size_t data_offset = ( sizeof(uint32_t) * 2 )
+        + ( sizeof(uint32_t) * 2 )
+        + 1 // for empty Item name
+        + item_name.size();
+    std::array<char, 8> file_data = {0,1,2,3,4,5,6,7};
+    Item item( data_offset, file_data.size(), item_name.c_str() );
+    pkg.Write( item, file_data.data(), file_data.size() );
+    std::array<char, file_data.size()> actual_data = {0};
+    std::memcpy( actual_data.data(), &data[data_offset], file_data.size() );
+    REQUIRE_THAT( actual_data, EqualsRange( file_data ) );
 }

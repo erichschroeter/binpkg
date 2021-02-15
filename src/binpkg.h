@@ -50,6 +50,7 @@ namespace BinPkg
         Header ParseHeader();
         int ReadCString( char * buf, size_t buf_length );
         void WriteHeader( const Header & hdr );
+        void Write( const Item & item, const char * data, size_t data_length );
 
     protected:
         std::iostream & m_stream;
