@@ -6,7 +6,9 @@ A small, simple library for packaging multiple files within a single file.
 The package layout is fairly simple where a header at the beginning of the file describes the contents after the header itself.
 This allows pretty much anything to be packaged within the file.
 
-The header is defined in terms of a C struct as that is how it is read by the program.
+The header starts with a 32-bit version for the file format version.
+This allows for future iterations that may break backwards compatibility.
+Following the version are a variable amount of item information.
 This simple design allows for a variable number of items to be stored within the file.
 
 The header must be ended with an "empty" `struct Item` (i.e. zero for all fields).
@@ -33,6 +35,9 @@ One constraint with this design is that filenames only support ASCII characters.
 Example header with 3 items within the package.
 
 ```c
+{
+	0x00000000
+}
 {
 	0x00000047,           // 4
 	0x00000004,           // 4
