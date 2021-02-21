@@ -100,6 +100,13 @@ TEST_CASE( "Item IsEmpty returns true when all values are zero" )
     REQUIRE( item.IsEmpty() );
 }
 
+TEST_CASE( "Item Size includes null terminator" )
+{
+    Item item( 0, 0, "" );
+    size_t expected_size = sizeof(uint32_t) + sizeof(uint32_t) + 1;
+    REQUIRE( item.Size() == expected_size );
+}
+
 TEST_CASE( "Header ItemCount returns 1 when 1 Item exists" )
 {
     Header hdr;
@@ -122,6 +129,19 @@ TEST_CASE( "Header CalcSize with one item includes null terminator" )
         + ( sizeof(Item::ItemInternal::Length) * 2 )
         + sizeof("") + 5;
     REQUIRE( hdr.CalcSize() == expected_size );
+}
+
+TEST_CASE( "Header Add recursively updates offsets" )
+{
+    Item item1( 0, 0, "first.bin" );
+    Item item2( 0, 0, "test.txt" );
+    Header hdr;
+    hdr.Add( item1 );
+    hdr.Add( item2 );
+    size_t expected_offset = item1.Size() + item2.Size() + Item::EMPTY_ITEM_SIZE;
+    REQUIRE( hdr.Get( 0 )->Offset() == expected_offset );
+    expected_offset += item1.Length();
+    REQUIRE( hdr.Get( 1 )->Offset() == expected_offset );
 }
 
 TEST_CASE( "Pkg ReadCString returns zero when empty string" )
@@ -206,9 +226,8 @@ TEST_CASE( "Pkg WriteHeader writes item offset" )
     Header hdr;
     hdr.Add( Item( 10, 0, "" ) );
     pkg.WriteHeader( hdr );
-    Item actual;
-    actual.m_offset = data[0];
-    REQUIRE( actual.m_offset == 10 );
+    uint32_t actual_offset = data[0];
+    REQUIRE( actual_offset == 10 );
 }
 
 TEST_CASE( "Pkg WriteHeader writes item length" )
@@ -219,9 +238,8 @@ TEST_CASE( "Pkg WriteHeader writes item length" )
     Header hdr;
     hdr.Add( Item( 0, 5, "" ) );
     pkg.WriteHeader( hdr );
-    Item actual;
-    actual.m_length = data[4];
-    REQUIRE( actual.m_length == 5 );
+    uint32_t actual_length = data[4];
+    REQUIRE( actual_length == 5 );
 }
 
 TEST_CASE( "Pkg WriteHeader writes item name" )
@@ -232,9 +250,9 @@ TEST_CASE( "Pkg WriteHeader writes item name" )
     Header hdr;
     hdr.Add( Item( 0, 0, "hello world" ) );
     pkg.WriteHeader( hdr );
-    Item actual;
-    std::strncpy( actual.m_name, &data[8], sizeof( actual.m_name ) );
-    REQUIRE( std::string( actual.m_name ) == "hello world" );
+    char actual_name[12] = {0};
+    std::strncpy( actual_name, &data[8], sizeof( actual_name ) );
+    REQUIRE( std::string( actual_name ) == "hello world" );
 }
 
 TEST_CASE( "Pkg Write write item data at offset" )
@@ -254,3 +272,49 @@ TEST_CASE( "Pkg Write write item data at offset" )
     std::memcpy( actual_data.data(), &data[data_offset], file_data.size() );
     REQUIRE_THAT( actual_data, EqualsRange( file_data ) );
 }
+
+TEST_CASE( "Pkg Add recursively updates offsets" )
+{
+    std::array<char, 8> file_data1 = {0,1,2,3,4,5,6,7};
+    std::array<char, 12> file_data2 = {'h', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', '\0'};
+    char stream_buf[64] = {0};
+    memstream<char> stream( stream_buf, sizeof(stream_buf) );
+    memstream<char> stream1( file_data1.data(), file_data1.size() );
+    memstream<char> stream2( file_data2.data(), file_data2.size() );
+    Pkg pkg( stream );
+    std::string item_name1 = "first.bin";
+    std::string item_name2 = "test.txt";
+    Item item1( 0, file_data1.size(), item_name1.c_str() );
+    Item item2( 0, file_data2.size(), item_name2.c_str() );
+    size_t file_data1_offset = pkg.HeaderMut().CalcSize();
+    pkg.Add( item1, stream1 );
+    pkg.Add( item2, stream2 );
+    size_t expected_offset = item1.Size() + item2.Size() + 9;
+    REQUIRE( pkg.Get( 0 )->Offset() == expected_offset );
+}
+
+// TEST_CASE( "Pkg write example with two files" )
+// {
+//     std::array<char, 8> file_data1 = {0,1,2,3,4,5,6,7};
+//     std::array<char, 12> file_data2 = {'h', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', '\0'};
+//     char stream_buf[64] = {0};
+//     memstream<char> stream( stream_buf, sizeof(stream_buf) );
+//     memstream<char> stream1( file_data1.data(), file_data1.size() );
+//     memstream<char> stream2( file_data2.data(), file_data2.size() );
+//     Pkg pkg( stream );
+//     std::string item_name1 = "first.bin";
+//     std::string item_name2 = "test.txt";
+//     // size_t data_offset = ( sizeof(uint32_t) * 2 )
+//     //     + ( sizeof(uint32_t) * 2 )
+//     //     + item_name1.size()
+//     //     + item_name2.size();
+//     Item item1( file_data1_offset, file_data1.size(), item_name1.c_str() );
+//     Item item2( file_data1_offset, file_data2.size(), item_name2.c_str() );
+//     size_t file_data1_offset = pkg.HeaderMut().CalcSize();
+//     pkg.Add( item1, stream1 );
+//     pkg.Add( item1, stream2 );
+//     pkg.Write();
+//     std::array<char, file_data1.size()> actual_data1 = {0};
+//     std::memcpy( actual_data1.data(), &stream_buf[file_data1_offset], file_data1.size() );
+//     REQUIRE_THAT( actual_data1, EqualsRange( file_data1 ) );
+// }
