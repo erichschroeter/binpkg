@@ -44,11 +44,8 @@ Header Pkg::ParseHeader()
         Item item;
         m_stream.read( (char*)&item.OffsetMut(), sizeof(item.Offset()) );
         m_stream.read( (char*)&item.LengthMut(), sizeof(item.Length()) );
-        // ReadCString( (char*)&item.NameMut(), Item::MAX_NAME_LENGTH );
         ReadCString( item.NameMut(), Item::MAX_NAME_LENGTH );
-        // m_stream.read( (char*)&item.m_offset, sizeof(item.m_offset) );
-        // m_stream.read( (char*)&item.m_length, sizeof(item.m_length) );
-        // ReadCString( item.m_name, sizeof(item.m_name) );
+
         if ( item.IsEmpty() )
         {
             empty_item_found = true;
@@ -87,14 +84,6 @@ void Pkg::WriteHeader( const Header & hdr )
         m_stream.write( (char*)&offset, sizeof(offset) );
         m_stream.write( (char*)&length, sizeof(length) );
         m_stream.write( name.c_str(), name.size() + 1 ); // +1 for null terminator
-
-        // m_stream.write( (char*)&item.OffsetMut(), sizeof(item.Offset()) );
-        // m_stream.write( (char*)&item.LengthMut(), sizeof(item.Length()) );
-        // m_stream.write( (char*)&item.NameMut(), std::strlen( item.NameMut() );
-
-        // m_stream.write( (char*)&item.m_offset, sizeof( item.m_offset ) );
-        // m_stream.write( (char*)&item.m_length, sizeof( item.m_length ) );
-        // m_stream.write( item.m_name, std::strlen( item.m_name ) );
     }
 }
 
@@ -107,7 +96,7 @@ void Pkg::Write( const Item & item, const char * data, size_t data_length )
 void Pkg::Write()
 {
     WriteHeader( m_header );
-    // for ( const auto & kp : m_items )
+
     for ( const auto & item : m_header.Items() )
     {
         std::iostream * stream = m_items[ item.Offset() ];
@@ -178,7 +167,7 @@ void Header::RecursivelyUpdateOffsets()
     {
         if ( previous_item != nullptr )
         {
-            offset += i.Length();
+            offset += previous_item->Length();
         }
 
         i.SetOffset( offset );

@@ -135,12 +135,15 @@ TEST_CASE( "Header CalcSize with one item includes null terminator" )
 
 TEST_CASE( "Header Add recursively updates offsets" )
 {
-    Item item1( 0, 0, "first.bin" );
-    Item item2( 0, 0, "test.txt" );
+    Item item1( 0, 7, "first.bin" );
+    Item item2( 0, 9, "test.txt" );
     Header hdr;
     hdr.Add( item1 );
     hdr.Add( item2 );
-    size_t expected_offset = item1.Size() + item2.Size() + Item::EMPTY_ITEM_SIZE + sizeof(hdr.Version());
+    size_t expected_offset = Item::EMPTY_ITEM_SIZE
+        + sizeof(hdr.Version())
+        + item1.Size()
+        + item2.Size();
     REQUIRE( hdr.Get( 0 )->Offset() == expected_offset );
     expected_offset += item1.Length();
     REQUIRE( hdr.Get( 1 )->Offset() == expected_offset );
