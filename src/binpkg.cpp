@@ -158,7 +158,7 @@ std::vector< Item > & Header::ItemsMut() &
     return m_items;
 }
 
-void Header::RecursivelyUpdateOffsets()
+void Header::UpdateOffsets()
 {
     size_t offset = CalcSize();
     Item * previous_item = nullptr;
@@ -178,7 +178,7 @@ void Header::RecursivelyUpdateOffsets()
 void Header::Add( Item item )
 {
     m_items.push_back( item );
-    RecursivelyUpdateOffsets();
+    UpdateOffsets();
 }
 
 const Item * Header::Get( int index ) const

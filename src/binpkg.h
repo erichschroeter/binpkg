@@ -55,7 +55,7 @@ namespace BinPkg
         std::vector< Item > & ItemsMut() &;
 
     protected:
-        void RecursivelyUpdateOffsets();
+        void UpdateOffsets();
         std::vector< Item > m_items;
         int32_t m_version;
     };
