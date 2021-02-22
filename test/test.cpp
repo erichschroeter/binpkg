@@ -220,6 +220,17 @@ TEST_CASE( "Pkg ParseHeader returns two Item when two exists" )
     REQUIRE( pkg.ParseHeader().ItemCount() == 2 );
 }
 
+TEST_CASE( "Pkg WriteHeader writes version" )
+{
+    char data[64] = {0};
+    memstream<char> stream( data, sizeof(data) );
+    Pkg pkg( stream );
+    Header hdr( 2 );
+    pkg.WriteHeader( hdr );
+    uint32_t actual_offset = data[0];
+    REQUIRE( actual_offset == 2 );
+}
+
 TEST_CASE( "Pkg WriteHeader writes item offset" )
 {
     char data[64] = {0};
@@ -228,8 +239,9 @@ TEST_CASE( "Pkg WriteHeader writes item offset" )
     Header hdr;
     hdr.Add( Item( 22, 0, "" ) );
     pkg.WriteHeader( hdr );
-    uint32_t actual_offset = data[0];
-    REQUIRE( actual_offset == 22 );
+    uint32_t expected_offset = hdr.CalcSize();
+    uint32_t actual_offset = data[sizeof(hdr.Version())];
+    REQUIRE( actual_offset == expected_offset );
 }
 
 TEST_CASE( "Pkg WriteHeader writes item length" )
@@ -240,7 +252,7 @@ TEST_CASE( "Pkg WriteHeader writes item length" )
     Header hdr;
     hdr.Add( Item( 0, 5, "" ) );
     pkg.WriteHeader( hdr );
-    uint32_t actual_length = data[4];
+    uint32_t actual_length = data[sizeof(hdr.Version()) + sizeof(uint32_t)];
     REQUIRE( actual_length == 5 );
 }
 
@@ -253,7 +265,7 @@ TEST_CASE( "Pkg WriteHeader writes item name" )
     hdr.Add( Item( 0, 0, "hello world" ) );
     pkg.WriteHeader( hdr );
     char actual_name[12] = {0};
-    std::strncpy( actual_name, &data[8], sizeof( actual_name ) );
+    std::strncpy( actual_name, &data[sizeof(hdr.Version()) + sizeof(uint32_t) + sizeof(uint32_t)], sizeof( actual_name ) );
     REQUIRE( std::string( actual_name ) == "hello world" );
 }
 

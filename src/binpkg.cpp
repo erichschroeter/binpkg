@@ -76,6 +76,9 @@ const Item * Pkg::Get( int index ) const
 
 void Pkg::WriteHeader( const Header & hdr )
 {
+    auto version = hdr.Version();
+    m_stream.write( (char*)&version, sizeof(version) );
+
     for ( const auto & item : hdr.Items() )
     {
         uint32_t offset = item.Offset();
