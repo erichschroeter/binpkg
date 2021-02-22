@@ -224,10 +224,10 @@ TEST_CASE( "Pkg WriteHeader writes item offset" )
     memstream<char> stream( data, sizeof(data) );
     Pkg pkg( stream );
     Header hdr;
-    hdr.Add( Item( 10, 0, "" ) );
+    hdr.Add( Item( 18, 0, "" ) );
     pkg.WriteHeader( hdr );
     uint32_t actual_offset = data[0];
-    REQUIRE( actual_offset == 10 );
+    REQUIRE( actual_offset == 18 );
 }
 
 TEST_CASE( "Pkg WriteHeader writes item length" )
