@@ -122,6 +122,22 @@ void Pkg::Write()
 
 #pragma region Header
 
+Header::Header( int32_t version )
+    :
+    m_version( version )
+{
+}
+
+int32_t Header::Version() const
+{
+    return m_version;
+}
+
+void Header::SetVersion( int32_t value )
+{
+    m_version = value;
+}
+
 size_t Header::ItemCount() const
 {
     return m_items.size();
@@ -129,7 +145,7 @@ size_t Header::ItemCount() const
 
 size_t Header::CalcSize() const
 {
-    size_t length = sizeof(Item::ItemInternal::Offset) + sizeof(Item::ItemInternal::Length) + sizeof("");
+    size_t length = Item::EMPTY_ITEM_SIZE + sizeof(m_version);
 
     for ( auto & item : Items() )
     {

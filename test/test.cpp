@@ -114,10 +114,10 @@ TEST_CASE( "Header ItemCount returns 1 when 1 Item exists" )
     REQUIRE( hdr.ItemCount() == 1 );
 }
 
-TEST_CASE( "Header CalcSize with empty item" )
+TEST_CASE( "Header CalcSize returns size of version and empty item" )
 {
     Header hdr;
-    size_t expected_size = sizeof(Item::ItemInternal::Offset) + sizeof(Item::ItemInternal::Length) + sizeof("");
+    size_t expected_size = Item::EMPTY_ITEM_SIZE + sizeof(hdr.Version());
     REQUIRE( hdr.CalcSize() == expected_size );
 }
 
@@ -125,9 +125,11 @@ TEST_CASE( "Header CalcSize with one item includes null terminator" )
 {
     Header hdr;
     hdr.Add( Item( 0, 0, "zero" ) );
-    size_t expected_size = ( sizeof(Item::ItemInternal::Offset) * 2)
-        + ( sizeof(Item::ItemInternal::Length) * 2 )
-        + sizeof("") + 5;
+    size_t expected_size = Item::EMPTY_ITEM_SIZE
+        + sizeof(hdr.Version())
+        + sizeof(Item::ItemInternal::Offset)
+        + sizeof(Item::ItemInternal::Length)
+        + sizeof("zero");
     REQUIRE( hdr.CalcSize() == expected_size );
 }
 
@@ -138,7 +140,7 @@ TEST_CASE( "Header Add recursively updates offsets" )
     Header hdr;
     hdr.Add( item1 );
     hdr.Add( item2 );
-    size_t expected_offset = item1.Size() + item2.Size() + Item::EMPTY_ITEM_SIZE;
+    size_t expected_offset = item1.Size() + item2.Size() + Item::EMPTY_ITEM_SIZE + sizeof(hdr.Version());
     REQUIRE( hdr.Get( 0 )->Offset() == expected_offset );
     expected_offset += item1.Length();
     REQUIRE( hdr.Get( 1 )->Offset() == expected_offset );
@@ -224,10 +226,10 @@ TEST_CASE( "Pkg WriteHeader writes item offset" )
     memstream<char> stream( data, sizeof(data) );
     Pkg pkg( stream );
     Header hdr;
-    hdr.Add( Item( 18, 0, "" ) );
+    hdr.Add( Item( 22, 0, "" ) );
     pkg.WriteHeader( hdr );
     uint32_t actual_offset = data[0];
-    REQUIRE( actual_offset == 18 );
+    REQUIRE( actual_offset == 22 );
 }
 
 TEST_CASE( "Pkg WriteHeader writes item length" )
@@ -289,7 +291,10 @@ TEST_CASE( "Pkg Add recursively updates offsets" )
     size_t file_data1_offset = pkg.HeaderMut().CalcSize();
     pkg.Add( item1, stream1 );
     pkg.Add( item2, stream2 );
-    size_t expected_offset = item1.Size() + item2.Size() + 9;
+    size_t expected_offset = Item::EMPTY_ITEM_SIZE
+        + sizeof(pkg.HeaderMut().Version())
+        + item1.Size()
+        + item2.Size();
     REQUIRE( pkg.Get( 0 )->Offset() == expected_offset );
 }
 

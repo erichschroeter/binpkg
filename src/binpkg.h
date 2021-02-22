@@ -44,6 +44,9 @@ namespace BinPkg
     class Header
     {
     public:
+        Header( int32_t version = 0 );
+        int32_t Version() const;
+        void SetVersion( int32_t value );
         size_t ItemCount() const;
         size_t CalcSize() const;
         void Add( Item item );
@@ -54,6 +57,7 @@ namespace BinPkg
     protected:
         void RecursivelyUpdateOffsets();
         std::vector< Item > m_items;
+        int32_t m_version;
     };
 
     class Pkg
