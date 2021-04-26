@@ -1,0 +1,50 @@
+#!/bin/sh
+# Git pre-commit hook that runs multiple hooks specified in $HOOKS.
+# Make sure this script is executable. Bypass hooks with git commit --no-verify.
+
+# This file is part of a set of unofficial pre-commit hooks available
+# at github.
+# Link:    https://github.com/ddddavidmartin/Pre-commit-hooks
+# Contact: David Martin, ddddavidmartin@fastmail.com
+
+###########################################################
+# There should be no need to change anything below this line.
+# For configuration see pre-commit.cfg and pre-commit.example.cfg.
+
+. "$(dirname -- "$0")/canonicalize_filename.sh"
+
+# exit on error
+set -e
+
+# Absolute path to this script, e.g. /home/user/bin/foo.sh
+SCRIPT="$(canonicalize_filename "$0")"
+# Absolute path this script is in, thus /home/user/bin
+SCRIPTPATH="$(dirname -- "$SCRIPT")"
+CONFIG="$SCRIPTPATH/pre-commit.cfg"
+
+if [ ! -f "$CONFIG" ] ; then
+    echo "Missing config file $CONFIG."
+    echo "You can skip all pre-commit hooks with --no-verify (not recommended)."
+    exit 1
+else
+    . "$CONFIG"
+fi
+
+for hook in $HOOKS
+do
+    echo "Running hook: $hook"
+    # run hook if it exists
+    # if it returns with nonzero exit with 1 and thus abort the commit
+    if [ -f "$SCRIPTPATH/$hook" ]; then
+        "$SCRIPTPATH/$hook"
+        if [ $? != 0 ]; then
+            exit 1
+        fi
+    else
+        echo "Error: file $hook not found."
+        echo "Aborting commit. Make sure the hook is in $SCRIPTPATH and executable."
+        echo "You can disable it by removing it from the list in $CONFIG."
+        echo "You can skip all pre-commit hooks with --no-verify (not recommended)."
+        exit 1
+    fi
+done
