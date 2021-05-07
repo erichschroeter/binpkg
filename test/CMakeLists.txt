@@ -7,7 +7,12 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(Catch2)
 
-add_executable(tests test.cpp)
+add_executable(tests
+  test.cpp
+  $<$<BOOL:FEATURE_X>:test_feature_x.cpp>
+  $<$<BOOL:FEATURE_Y>:
+    test_feature_y_1.cpp
+    test_feature_y_2.cpp>)
 target_link_libraries(
   tests
     PRIVATE
